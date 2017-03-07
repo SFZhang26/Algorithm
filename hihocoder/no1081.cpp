@@ -27,6 +27,8 @@ ll myMin(ll a, ll b) {
 
 int main() {
 	cin >> n >> m >> s >> e;
+	s--;
+	e--;
 	vector<vector<ll>> dist(n, vector<ll>(n, LARGE));
 	vector<ll> cur(n, LARGE);
 	for (int i = 0; i < m; i++) {
@@ -35,31 +37,33 @@ int main() {
 		dist[u - 1][v - 1] = myMin(dist[u - 1][v - 1], d);
 		dist[v - 1][u - 1] = myMin(dist[v - 1][u - 1], d);
 	}
-	int node = s-1;
-	vector<int> already;
-	already.push_back(node);
-	cur[node] = 0;
-	while (true) {
-		int next = -1;
-		int len = LARGE;
-		for (int i = 0; i < already.size(); i++) {
-			for (int j = 0; j < n; j++) {
-				if (already[i] == j) continue;
-				if (dist[already[i]][j] < LARGE && cur[j] == LARGE) {
-					int temp = cur[already[i]] + dist[already[i]][j];
-					if (temp < len) {
-						len = temp;
-						next = j;
-					}
-				}
+	vector<ll> dp(n, 0);
+	vector<bool> used(n, false);
+	for (int i = 0; i < n; i++) {
+		dp[i] = dist[i][s];
+	}
+	dp[s] = 0;
+	used[s] = true;
+	for (int i = 0; i < n; i++) {
+		int cur = -1;
+		ll cur_max = LARGE;
+		for (int j = 0; j < n; j++) {
+			if (!used[j] && dp[j] < cur_max) {
+				cur = j;
+				cur_max = dp[j];
 			}
 		}
-		if (next == (e - 1)) {
-			cout << len << endl;
+		used[cur] = true;
+		if (cur == e) {
+			cout << dp[e] << endl;
 			break;
 		}
-		already.push_back(next);
-		cur[next] = len;
+		for (int j = 0; j < n; j++) {
+			if (!used[j] && dist[cur][j]<LARGE) {
+				dp[j] = myMin(dp[j], dp[cur] + dist[cur][j]);
+			}
+		}
+
 	}
 		
 	return 0;
