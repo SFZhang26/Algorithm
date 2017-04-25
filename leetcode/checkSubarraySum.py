@@ -7,13 +7,13 @@ class Solution(object):
         :type k: int
         :rtype: bool
         """
-        vec=[]
+        vec=set([])
         total, save=0, 0
         for i in nums:
             total+=i
             left=total if k==0 else total%k
             if left in vec:
                 return True
-            vec.append(save)
+            vec.add(save)
             save=left
         return False
