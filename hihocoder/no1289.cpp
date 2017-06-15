@@ -1,65 +1,97 @@
-#include <cstdio>
 #include <iostream>
-#include <cstring>
-#include <bitset> 
+#include <cmath>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <algorithm>
+#include <fstream>
+#include <iomanip>
+#include <map>
+#include <string>
+#include <bitset>
+#include <set>
 
 using namespace std;
 
 typedef long long ll;
 
-const int N = 2e6;
+struct Node {
+	int decision;
+	Node *zero;
+	Node *one;
 
-struct Trie {
-	int root, total;
-	int next[N][2], id[N];
-	bool end[N];
-
-	int NewNode() {
-		memset(next[total], -1, sizeof(next[total]));
-		return total++;
+	Node(int d) {
+		decision = d;
+		zero = NULL;
+		one = NULL;
 	}
+};
 
-	void init() {
-		memset(id, 0, sizeof(id));
-		total = 0;
-		root = NewNode();
-	}
 
-	void insert(string s, int num, bool decision) {
-		int p = root;
-		for (int i = 0; i < s.size(); i++) {
-			int idx = (s[i] == '1' ? 1 : 0);
-			if (next[p][idx] == -1) {
-				next[p][idx] = NewNode();
+string getString(string s) {
+	string res = "";
+	s = s + '.';
+	int start = 0;
+	int count = 0;
+	for (int i = 0; i < s.size(); i++) {
+		if (s[i] == '.' || s[i] == '/') {
+			int num = atoi(s.substr(start, i - start).c_str());
+			if (count < 4) {
+				bitset<8> b(num);
+				res += b.to_string();
+				count++;
 			}
-			p = next[p][idx];
-		}
-		if (id[p] == 0) {
-			id[p] = num;
-			end[p] = decision;
-		}
-	}
-
-	bool search(string s) {
-		bool res = true;
-		int p = root, cur_id = 1000000;
-		if (id[p]) {
-			cur_id = id[p];
-			res = end[p];
-		}
-		for (int i = 0; i < 32; i++) {
-			int idx = (s[i] == '1' ? 1 : 0);
-			if (next[p][idx] == -1)
-				return res;
-			p = next[p][idx];
-			if (id[p] && id[p] < cur_id) {
-				cur_id = id[p];
-				res = end[p];
+			else {
+				res = res.substr(0, num);
 			}
+			start = i + 1;
 		}
-		return res;
 	}
-}trie;
+	return res;
+}
+
+void addNode(Node *parent, int decision, string s, int index) {
+	if (s.size() <= index) {
+		if (parent->decision == 0) parent->decision = decision;
+		return;
+	}
+	if (parent->decision != 0) return;
+
+	if (s[index] == '1') {
+		if (parent->one == NULL) {
+			Node *next = new Node(0);
+			parent->one = next;
+		}
+		parent = parent->one;
+	}
+	else {
+		if (parent->zero == NULL) {
+			Node *next = new Node(0);
+			parent->zero = next;
+		}
+		parent = parent->zero;
+	}
+	addNode(parent, decision, s, index + 1);
+}
+
+bool query(Node *root, string s) {
+	int des = 0;
+	int i = 0;
+	while (i<s.size()) {
+		if (root->decision != 0) des = root->decision;
+		if (s[i] == '1') {
+			if (root->one == NULL) return des >= 0;
+			else root = root->one;
+		}
+		else {
+			if (root->zero == NULL) return des >= 0;
+			else root = root->zero;
+		}
+		i++;
+	}
+	des = root->decision;
+	return des >= 0;
+}
 
 int main() {
 	int n, m;
@@ -67,9 +99,7 @@ int main() {
 
 	int i1, i2, i3, i4, count;
 	char ch, deci[10];
-	//Trie trie;
-	trie.init();
-
+	Node *root = new Node(0);
 	for (int i = 0; i < n; i++) {
 		count = 32;
 		scanf("%s %d.%d.%d.%d", deci, &i1, &i2, &i3, &i4);
@@ -78,14 +108,16 @@ int main() {
 		ll num = (i1 << 24) + (i2 << 16) + (i3 << 8) + i4;
 		bitset<32> b(num);
 		string cur = b.to_string().substr(0, count);
-		trie.insert(cur, i + 1, strcmp(deci, "allow") == 0);
+		int decision = strcmp(deci, "allow") == 0 ? 1 : -1;
+		addNode(root, decision, cur, 0);
 	}
 	for (int i = 0; i < m; i++) {
 		scanf("%d.%d.%d.%d", &i1, &i2, &i3, &i4);
 		ll num = (i1 << 24) + (i2 << 16) + (i3 << 8) + i4;
 		bitset<32> b(num);
 		string cur = b.to_string();
-		if (trie.search(cur)) cout << "YES" << endl;
+		bool res = query(root, cur);
+		if (res) cout << "YES" << endl;
 		else cout << "NO" << endl;
 	}
 	return 0;
