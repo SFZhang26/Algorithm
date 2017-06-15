@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -26,29 +28,6 @@ struct Node {
 		one = NULL;
 	}
 };
-
-
-string getString(string s) {
-	string res = "";
-	s = s + '.';
-	int start = 0;
-	int count = 0;
-	for (int i = 0; i < s.size(); i++) {
-		if (s[i] == '.' || s[i] == '/') {
-			int num = atoi(s.substr(start, i - start).c_str());
-			if (count < 4) {
-				bitset<8> b(num);
-				res += b.to_string();
-				count++;
-			}
-			else {
-				res = res.substr(0, num);
-			}
-			start = i + 1;
-		}
-	}
-	return res;
-}
 
 void addNode(Node *parent, int decision, string s, int index) {
 	if (s.size() <= index) {
