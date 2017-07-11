@@ -34,7 +34,7 @@ class Solution:
                 if temp == 0 and flag:
                     cof+=sig
                 else:
-                    cof += (sig*temp)
+                    cof+=(sig*temp)
                 sig=1
                 temp = 0
             else:
